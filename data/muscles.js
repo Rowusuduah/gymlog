@@ -14,6 +14,8 @@ export const MUSCLES = {
   glutes:     { name: "Glutes",         region: "back"  },
   quads:      { name: "Quads",          region: "front" },
   hamstrings: { name: "Hamstrings",     region: "back"  },
+  glutemed:   { name: "Glutes (side)",  region: "back"  },
+  adductors:  { name: "Inner thigh",    region: "front" },
   calves:     { name: "Calves",         region: "both"  },
 };
 
@@ -23,7 +25,7 @@ export const MUSCLE_GROUPS = {
   Back:       ["lats", "upperback", "traps", "lowerback"],
   Shoulders:  ["shoulders"],
   Arms:       ["biceps", "triceps", "forearms"],
-  Legs:       ["quads", "hamstrings", "glutes", "calves"],
+  Legs:       ["quads", "hamstrings", "glutes", "glutemed", "adductors", "calves"],
   Core:       ["abs", "obliques"],
 };
 
