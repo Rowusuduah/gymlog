@@ -1,7 +1,7 @@
 // ============================================================
 //  GymLog service worker — offline app shell
 // ============================================================
-const VERSION = "gymlog-v1.0.0";
+const VERSION = "gymlog-v1.1.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const ASSETS = [
   "./js/app.js",
   "./js/store.js",
   "./js/state.js",
+  "./js/sync.js",
   "./js/coach.js",
   "./js/utils.js",
   "./js/components/icons.js",

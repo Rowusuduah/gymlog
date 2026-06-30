@@ -6,6 +6,7 @@ import { icon } from "../components/icons.js";
 import { confirmSheet } from "../components/sheet.js";
 import { settings, setSetting } from "../state.js";
 import { exportData, importData, resetAll } from "../store.js";
+import { sync, connectDrive, disconnectDrive, syncNow } from "../sync.js";
 import { GOALS, goalConfig, repTarget, restTarget } from "../coach.js";
 import { navigate } from "../app.js";
 
@@ -67,6 +68,9 @@ export function renderSettings() {
     ]),
   ]));
 
+  // cloud sync
+  root.appendChild(cloudCard(s));
+
   // danger
   root.appendChild(el("div.card", {}, [
     el("button.btn.btn--danger.btn--block", { onclick: doReset }, [frag(icon("trash")), "Reset all data"]),
@@ -80,6 +84,64 @@ export function renderSettings() {
   ]));
 
   return root;
+}
+
+// ---------- cloud sync ----------
+const SETUP_URL = "https://github.com/Rowusuduah/gymlog/blob/main/docs/google-drive-setup.md";
+
+function statusPill() {
+  const map = {
+    synced:    ["chip--volt", "Up to date"],
+    syncing:   ["", "Syncing…"],
+    connecting:["", "Connecting…"],
+    offline:   ["", "Offline"],
+    error:     ["", sync.message || "Error"],
+    idle:      ["", "Not synced"],
+  };
+  const [cls, label] = map[sync.status] || map.idle;
+  return el("div.chip", { class: cls, text: label });
+}
+
+function cloudCard(s) {
+  const connected = s.driveConnected;
+  const hasId = !!(s.googleClientId && s.googleClientId.trim());
+
+  const head = el("div.flex.between.center", {}, [
+    el("div.card-title", { style: { margin: "0" } }, [frag(icon("upload")), el("h2.h-section", { text: "Cloud sync" })]),
+    statusPill(),
+  ]);
+
+  const body = [];
+
+  if (!hasId) {
+    body.push(el("p.muted", { style: { fontSize: "14px", lineHeight: "1.5", marginBottom: "12px" }, text: "Sync your data to your own Google Drive so it follows you across devices. First, paste a free Google OAuth Client ID (one-time, ~5 min setup)." }));
+    const input = el("input.input", { placeholder: "xxxxx.apps.googleusercontent.com", value: s.googleClientId || "" });
+    body.push(el("div.field", { style: { margin: "0 0 10px" } }, [el("label", { text: "Google Client ID" }), input]));
+    body.push(el("div.flex.gap-10", {}, [
+      el("a.btn.btn--block", { href: SETUP_URL, target: "_blank", rel: "noopener" }, [frag(icon("info")), "Setup guide"]),
+      el("button.btn.btn--volt.btn--block", { onclick: () => {
+        const v = input.value.trim();
+        if (!v) return toast("Paste your Client ID first");
+        setSetting("googleClientId", v); toast("Client ID saved");
+      } }, [frag(icon("check")), "Save"]),
+    ]));
+  } else if (!connected) {
+    body.push(el("p.muted", { style: { fontSize: "14px", lineHeight: "1.5", marginBottom: "12px" }, text: "Connect your Google account to back up and sync your training data to your private Drive folder. It only ever touches your own Drive." }));
+    body.push(el("button.btn.btn--volt.btn--block", { onclick: connectDrive }, [frag(icon("upload")), "Connect Google Drive"]));
+    body.push(el("button.btn.btn--ghost.btn--sm.mt-8", { onclick: () => { setSetting("googleClientId", ""); } }, ["Change Client ID"]));
+  } else {
+    body.push(el("p.muted", { style: { fontSize: "14px", lineHeight: "1.5", marginBottom: "12px" }, text: sync.lastSyncedAt ? "Connected. Your data syncs automatically after each change and when you reopen the app." : "Connected to Google Drive. Your data will sync automatically." }));
+    body.push(el("div.flex.gap-10", {}, [
+      el("button.btn.btn--volt.btn--block", { onclick: () => syncNow(true) }, [frag(icon("download")), "Sync now"]),
+      el("button.btn.btn--block", { onclick: disconnectDrive }, [frag(icon("close")), "Disconnect"]),
+    ]));
+  }
+
+  if (sync.status === "error" && sync.message) {
+    body.push(el("p", { style: { color: "var(--bad)", fontSize: "13px", marginTop: "10px" }, text: sync.message }));
+  }
+
+  return el("div.card", {}, [head, el("div.mt-14", {}, body)]);
 }
 
 // ---------- actions ----------

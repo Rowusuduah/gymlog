@@ -7,6 +7,7 @@ const KEY = "gymlog.v1";
 
 const DEFAULTS = () => ({
   version: 1,
+  updatedAt: 0,       // ms timestamp of last change (for cloud sync)
   settings: {
     name: "",
     units: "kg",      // "kg" | "lb"
@@ -14,6 +15,8 @@ const DEFAULTS = () => ({
     goal: "hypertrophy", // strength | hypertrophy | endurance
     restDefault: 90,  // seconds
     onboarded: false,
+    googleClientId: "", // OAuth client id for Drive sync (set by user)
+    driveConnected: false,
   },
   sessions: [],       // completed workouts
   body: [],           // body-metric logs
@@ -39,6 +42,7 @@ function migrate(d) {
   return {
     ...base,
     ...d,
+    updatedAt: d.updatedAt || base.updatedAt,
     settings: { ...base.settings, ...(d.settings || {}) },
     sessions: Array.isArray(d.sessions) ? d.sessions : [],
     body: Array.isArray(d.body) ? d.body : [],
@@ -61,10 +65,23 @@ export function persist() {
   return true;
 }
 
-/** mutate(d => { ... }) — apply a change and persist. */
+// listeners fired only on genuine user edits (not on sync-applied writes)
+const mutateListeners = new Set();
+export const onMutate = (fn) => { mutateListeners.add(fn); return () => mutateListeners.delete(fn); };
+
+/** mutate(d => { ... }) — apply a change, stamp updatedAt, and persist. */
 export function mutate(fn) {
   fn(db());
+  db().updatedAt = Date.now();
   persist();
+  mutateListeners.forEach((f) => { try { f(); } catch (e) { console.warn(e); } });
+}
+
+/** Replace the whole dataset (used by cloud sync / restore). */
+export function setData(obj) {
+  _data = migrate(obj);
+  persist();
+  return _data;
 }
 
 // ---------- backup ----------

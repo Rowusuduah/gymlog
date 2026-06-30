@@ -11,6 +11,7 @@ import { renderLibrary, renderExercise } from "./views/library.js";
 import { renderBody } from "./views/body.js";
 import { renderProgress } from "./views/progress.js";
 import { renderSettings } from "./views/settings.js";
+import { initSync } from "./sync.js";
 
 const NAV = [
   { route: "today", label: "Today", ic: "today" },
@@ -116,6 +117,7 @@ function boot() {
   window.addEventListener("hashchange", renderRoute);
   subscribe(() => renderRoute());
   registerSW();
+  initSync();
 }
 
 boot();
