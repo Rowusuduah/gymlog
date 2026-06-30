@@ -3,7 +3,7 @@
 //  derived analytics, and a small pub/sub for re-rendering.
 // ============================================================
 import { db, mutate } from "./store.js";
-import { byId } from "../data/exercises.js";
+import { byId, isCardio } from "../data/exercises.js";
 import { groupOf } from "../data/muscles.js";
 import { uid, todayISO, epley1RM, sum, daysBetween } from "./utils.js";
 
@@ -39,10 +39,10 @@ export function addExercise(exId) {
     if (d.active.exercises.some((e) => e.exId === exId)) return;
     // seed one empty set, pre-filled from last time if available
     const last = lastSet(exId);
-    d.active.exercises.push({
-      exId,
-      sets: [{ weight: last?.weight ?? null, reps: last?.reps ?? null, done: false }],
-    });
+    const seed = isCardio(exId)
+      ? { minutes: last?.minutes ?? null, distance: last?.distance ?? null, calories: last?.calories ?? null, done: false }
+      : { weight: last?.weight ?? null, reps: last?.reps ?? null, done: false };
+    d.active.exercises.push({ exId, sets: [seed] });
   });
   emit();
 }
@@ -57,7 +57,11 @@ export function addSet(exIdx) {
     const ex = d.active?.exercises[exIdx];
     if (!ex) return;
     const prev = ex.sets[ex.sets.length - 1];
-    ex.sets.push({ weight: prev?.weight ?? null, reps: prev?.reps ?? null, done: false });
+    if (isCardio(ex.exId)) {
+      ex.sets.push({ minutes: prev?.minutes ?? null, distance: prev?.distance ?? null, calories: prev?.calories ?? null, done: false });
+    } else {
+      ex.sets.push({ weight: prev?.weight ?? null, reps: prev?.reps ?? null, done: false });
+    }
   });
   emit();
 }
@@ -86,9 +90,12 @@ export function setActiveNotes(notes) {
 export function finishWorkout() {
   const a = active();
   if (!a) return null;
-  // keep only sets that have weight & reps
+  // keep only sets with real data (cardio: minutes; strength: reps)
   const exercises = a.exercises
-    .map((e) => ({ exId: e.exId, sets: e.sets.filter((s) => s.reps != null && s.reps > 0) }))
+    .map((e) => ({
+      exId: e.exId,
+      sets: e.sets.filter((s) => (isCardio(e.exId) ? s.minutes > 0 : s.reps != null && s.reps > 0)),
+    }))
     .filter((e) => e.sets.length > 0);
 
   const beforePRs = prMap();
@@ -186,7 +193,7 @@ export function weeklyVolume(days = 7) {
     if (daysBetween(s.dateISO, today) >= days) continue;
     for (const ex of s.exercises) {
       const meta = byId(ex.exId);
-      if (!meta) continue;
+      if (!meta || isCardio(ex.exId)) continue; // cardio has no weight volume
       const vol = sum(ex.sets, (st) => (st.weight || 0) * (st.reps || 0)) || sum(ex.sets, (st) => st.reps || 0);
       for (const mk of meta.primary) {
         const g = groupOf(mk);
@@ -220,6 +227,20 @@ export function weekCount() {
 /** dates (ISO) that had a workout, for the calendar heatmap */
 export function trainingDays() {
   return new Set(db().sessions.map((s) => s.dateISO));
+}
+
+/** total cardio minutes within the last `days` */
+export function weeklyCardioMinutes(days = 7) {
+  const today = todayISO();
+  let mins = 0;
+  for (const s of db().sessions) {
+    if (daysBetween(s.dateISO, today) >= days) continue;
+    for (const ex of s.exercises) {
+      if (!isCardio(ex.exId)) continue;
+      mins += sum(ex.sets, (st) => st.minutes || 0);
+    }
+  }
+  return Math.round(mins);
 }
 
 export function totalStats() {

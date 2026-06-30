@@ -4,10 +4,10 @@
 import { el, frag, debounce, haptic, toast } from "../utils.js";
 import { icon } from "../components/icons.js";
 import { muscleThumb, muscleMap } from "../components/muscleMap.js";
-import { EXERCISES, EQUIPMENT, byId } from "../../data/exercises.js";
+import { EXERCISES, EQUIPMENT, byId, isCardio } from "../../data/exercises.js";
 import { MUSCLE_GROUPS, groupOf, muscleName } from "../../data/muscles.js";
 import { settings, active, startWorkout, addExercise } from "../state.js";
-import { prescription, startingAdvice } from "../coach.js";
+import { prescription, startingAdvice, cardioGuide } from "../coach.js";
 import { navigate } from "../app.js";
 
 // keep filter state across re-renders within a session
@@ -139,15 +139,28 @@ export function renderExercise(id) {
   }, [frag(icon("plus")), "Add to workout"]));
 
   // prescription (rule of thumb)
-  root.appendChild(el("div.card.mt-14", {}, [
-    el("div.card-title", {}, [frag(icon("bolt")), el("h2.h-section", { text: `Rule of thumb · ${capitalize(s.goal)}` })]),
-    el("div.statrow", {}, [
-      mini(rx.sets, "Sets"),
-      mini(rx.reps, "Reps"),
-      mini(rx.rest, "Rest"),
-    ]),
-    el("p.muted.mt-14", { text: `Aim to keep ${rx.rir}. ${startingAdvice(ex)}`, style: { lineHeight: "1.5", fontSize: "14px" } }),
-  ]));
+  if (isCardio(ex.id)) {
+    const g = cardioGuide();
+    root.appendChild(el("div.card.mt-14", {}, [
+      el("div.card-title", {}, [frag(icon("bolt")), el("h2.h-section", { text: "Rule of thumb · Cardio" })]),
+      el("div.statrow", {}, [
+        mini(g.duration, "Duration"),
+        mini(g.frequency, "Frequency"),
+        mini(g.intensity, "Intensity"),
+      ]),
+      el("p.muted.mt-14", { text: g.note, style: { lineHeight: "1.5", fontSize: "14px" } }),
+    ]));
+  } else {
+    root.appendChild(el("div.card.mt-14", {}, [
+      el("div.card-title", {}, [frag(icon("bolt")), el("h2.h-section", { text: `Rule of thumb · ${capitalize(s.goal)}` })]),
+      el("div.statrow", {}, [
+        mini(rx.sets, "Sets"),
+        mini(rx.reps, "Reps"),
+        mini(rx.rest, "Rest"),
+      ]),
+      el("p.muted.mt-14", { text: `Aim to keep ${rx.rir}. ${startingAdvice(ex)}`, style: { lineHeight: "1.5", fontSize: "14px" } }),
+    ]));
+  }
 
   // how-to
   root.appendChild(stepCard("How to do it", ex.steps, "list"));

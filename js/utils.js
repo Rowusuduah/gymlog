@@ -77,6 +77,17 @@ export const fmtWeight = (kg, units) => {
   return `${(Math.round(v * 10) / 10).toString().replace(/\.0$/, "")} ${units}`;
 };
 
+// distance (stored in km internally; shown in mi when units = lb)
+export const KM_PER_MI = 1.609344;
+export const distanceUnit = (units) => (units === "lb" ? "mi" : "km");
+export const toDisplayDistance = (km, units) => (units === "lb" ? km / KM_PER_MI : km);
+export const fromDisplayDistance = (val, units) => (units === "lb" ? val * KM_PER_MI : val);
+export const fmtDistance = (km, units) => {
+  if (km == null) return "—";
+  const v = toDisplayDistance(km, units);
+  return `${Math.round(v * 100) / 100} ${distanceUnit(units)}`;
+};
+
 // estimated 1-rep max (Epley), input + output both in kg
 export const epley1RM = (weightKg, reps) => {
   if (!weightKg || !reps) return 0;

@@ -6,7 +6,7 @@ import { icon } from "../components/icons.js";
 import { lineChart, barChart, calendarHeat } from "../components/charts.js";
 import {
   settings, personalRecords, strengthProgression, weeklyVolume,
-  trainingDays, totalStats, streak, sessions,
+  trainingDays, totalStats, streak, sessions, weeklyCardioMinutes,
 } from "../state.js";
 import { byId } from "../../data/exercises.js";
 
@@ -42,10 +42,14 @@ export function renderProgress() {
 
   // streak / calendar
   const st = streak();
+  const cardioMin = weeklyCardioMinutes(7);
   root.appendChild(el("div.card.mt-14", {}, [
     el("div.flex.between.center", {}, [
       el("div.card-title", { style: { margin: "0" } }, [frag(icon("flame")), el("h2.h-section", { text: "Consistency" })]),
-      el("div.chip.chip--volt", { text: `${st.current} day streak` }),
+      el("div.flex.gap-6", {}, [
+        cardioMin > 0 ? el("div.chip", { text: `${cardioMin} min cardio` }) : null,
+        el("div.chip.chip--volt", { text: `${st.current} day streak` }),
+      ]),
     ]),
     el("div.mt-14", { style: { overflowX: "auto" } }, [calendarHeat(trainingDays(), 18)]),
     el("p.dim.mt-8", { text: "Each square is a day. Lit squares are training days.", style: { fontSize: "12px" } }),

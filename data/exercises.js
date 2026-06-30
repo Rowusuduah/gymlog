@@ -11,10 +11,10 @@
 
 export const EQUIPMENT = [
   "Bodyweight", "Dumbbell", "Barbell", "Machine",
-  "Smith", "Cable", "Kettlebell", "Band", "Other",
+  "Smith", "Cable", "Cardio", "Kettlebell", "Band", "Other",
 ];
 
-export const PATTERNS = ["Push", "Pull", "Squat", "Hinge", "Lunge", "Carry", "Core"];
+export const PATTERNS = ["Push", "Pull", "Squat", "Hinge", "Lunge", "Carry", "Core", "Cardio"];
 
 const E = (o) => o; // identity, keeps definitions tidy
 
@@ -473,6 +473,52 @@ export const EXERCISES = [
     steps:["Start in a push-up plank, hands under shoulders.","Drive one knee toward your chest.","Switch legs quickly while keeping your hips low.","Keep a steady, controlled pace."],
     mistakes:["Letting the hips bounce up.","Holding your breath."],
     tip:"Keep your shoulders over your hands and core braced the whole time." }),
+
+  // one more common machine (Planet Fitness / USF both have it)
+  E({ id:"assisted-dip", name:"Assisted Dip Machine", equipment:"Machine", pattern:"Push", type:"compound",
+    primary:["triceps"], secondary:["chest","shoulders"], difficulty:"Beginner",
+    steps:["Set the assistance weight (more weight = more help).","Kneel/stand on the pad, grip the handles, arms straight.","Lower until your elbows reach about 90°.","Press back up to straight arms."],
+    mistakes:["Choosing so much help you barely work.","Dropping too deep and straining the shoulders."],
+    tip:"Reduce the assistance over time until you can do unassisted dips." }),
+
+  // ============================= CARDIO =============================
+  // Cardio entries log minutes (+ optional distance & calories), not sets×reps.
+  E({ id:"treadmill", name:"Treadmill (Walk / Run)", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["quads","hamstrings","glutes","calves"], secondary:[], difficulty:"Beginner",
+    steps:["Start with a 3–5 min easy walk to warm up.","Set a pace you can sustain — brisk walk or easy jog.","Add a 1–2% incline to reduce joint stress and boost effort.","Cool down with 3–5 min of easy walking."],
+    mistakes:["Holding the handrails the whole time (reduces the work).","Starting too fast and burning out."],
+    tip:"Beginner target: a pace where you can talk but not sing. Build time before speed." }),
+  E({ id:"elliptical", name:"Elliptical", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["quads","glutes","hamstrings","calves"], secondary:["chest","upperback"], difficulty:"Beginner",
+    steps:["Step on and start a smooth, steady stride.","Push and pull the handles to involve the upper body.","Keep an upright posture, weight through your heels.","Adjust resistance/incline to keep effort moderate."],
+    mistakes:["Leaning on the handles.","Letting momentum swing your legs."],
+    tip:"Low-impact and easy on the knees — great for longer steady sessions." }),
+  E({ id:"stationary-bike", name:"Stationary Bike (Upright)", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["quads","hamstrings","calves"], secondary:["glutes"], difficulty:"Beginner",
+    steps:["Set the seat so your knee has a slight bend at the bottom.","Start pedaling at an easy resistance to warm up.","Increase resistance to keep a moderate, steady effort.","Keep your core engaged and shoulders relaxed."],
+    mistakes:["Seat too low (knee pain).","Resistance so low your legs just spin."],
+    tip:"A safe, joint-friendly way to build your cardio base." }),
+  E({ id:"recumbent-bike", name:"Recumbent Bike", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["quads","hamstrings","glutes"], secondary:["calves"], difficulty:"Beginner",
+    steps:["Adjust the seat so your legs nearly straighten at full push.","Sit back against the support, start easy.","Build to a steady moderate resistance.","Keep a smooth, even pedal stroke."],
+    mistakes:["Seat too close (cramped knees).","Coasting with no resistance."],
+    tip:"The back support makes this the most comfortable starting cardio option." }),
+  E({ id:"stair-climber", name:"Stair Climber", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["glutes","quads","hamstrings","calves"], secondary:[], difficulty:"Intermediate",
+    steps:["Start slow and find your rhythm.","Stand tall — don't hunch over the rails.","Take full steps, pressing through your whole foot.","Use the rails for light balance only."],
+    mistakes:["Leaning heavily on the handrails.","Tiny fast steps instead of full ones."],
+    tip:"Tough on the legs and glutes — start with shorter sessions." }),
+  E({ id:"rowing-machine", name:"Rowing Machine (Erg)", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["lats","upperback","quads","hamstrings"], secondary:["biceps","glutes","abs"], difficulty:"Beginner",
+    steps:["Strap in your feet, grab the handle, shins vertical.","Drive with your legs first, then lean back, then pull the arms.","Reverse the order to return: arms, body, then legs.","Keep a smooth 1:2 pull-to-recovery rhythm."],
+    mistakes:["Pulling with the arms first.","Rounding the back on the drive."],
+    tip:"It's legs → body → arms. A full-body cardio and strength builder." }),
+  E({ id:"jump-rope", name:"Jump Rope", equipment:"Cardio", pattern:"Cardio", type:"cardio",
+    primary:["calves","quads"], secondary:["shoulders","forearms"], difficulty:"Beginner",
+    steps:["Hold the handles, elbows close to your sides.","Turn the rope mostly with your wrists.","Jump just high enough to clear the rope.","Land softly on the balls of your feet."],
+    mistakes:["Jumping too high.","Swinging from the shoulders."],
+    tip:"Start with short 20–30s intervals and build up — it's deceptively tough." }),
 ];
 
 export const byId = (id) => EXERCISES.find((e) => e.id === id);
+export const isCardio = (id) => byId(id)?.type === "cardio";

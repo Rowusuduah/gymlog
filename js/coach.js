@@ -73,6 +73,16 @@ export function randomTip() {
   return TIPS[Math.floor((Date.now() / 1000) % TIPS.length)];
 }
 
+/** Beginner cardio rule-of-thumb. */
+export function cardioGuide() {
+  return {
+    duration: "20–30 min",
+    frequency: "3×/week",
+    intensity: "Moderate",
+    note: "Warm up 5 min. Keep it at a pace where you can talk but not sing. Build up your time before pushing speed or resistance.",
+  };
+}
+
 /** A friendly starting-point note for someone new to a movement. */
 export function startingAdvice(exercise) {
   if (!exercise) return "";

@@ -1,7 +1,7 @@
 // ============================================================
 //  Log — the active workout screen
 // ============================================================
-import { el, frag, fmtClock, toDisplayWeight, fromDisplayWeight, fmtWeight, toast, haptic } from "../utils.js";
+import { el, frag, fmtClock, toDisplayWeight, fromDisplayWeight, fmtWeight, toDisplayDistance, fromDisplayDistance, distanceUnit, toast, haptic } from "../utils.js";
 import { icon } from "../components/icons.js";
 import { openExercisePicker } from "../components/picker.js";
 import { confirmSheet } from "../components/sheet.js";
@@ -10,8 +10,8 @@ import {
   active, startWorkout, cancelWorkout, addExercise, removeExercise,
   addSet, updateSet, removeSet, setActiveNotes, finishWorkout, lastPerformance, settings,
 } from "../state.js";
-import { prescription, defaultRest } from "../coach.js";
-import { byId } from "../../data/exercises.js";
+import { prescription, defaultRest, cardioGuide } from "../coach.js";
+import { byId, isCardio } from "../../data/exercises.js";
 import { navigate } from "../app.js";
 
 export function renderLog() {
@@ -56,7 +56,7 @@ export function renderLog() {
   ]));
 
   // ---- finish ----
-  const totalSets = a.exercises.reduce((n, e) => n + e.sets.filter((x) => x.reps > 0).length, 0);
+  const totalSets = a.exercises.reduce((n, e) => n + e.sets.filter((x) => (isCardio(e.exId) ? x.minutes > 0 : x.reps > 0)).length, 0);
   root.appendChild(
     el("button.btn.btn--volt.btn--block.btn--lg.mt-14", { disabled: totalSets === 0, onclick: finish }, [
       frag(icon("flag")), totalSets ? `Finish workout · ${totalSets} sets` : "Log a set to finish",
@@ -70,6 +70,7 @@ export function renderLog() {
 function exerciseCard(ex, i, s) {
   const meta = byId(ex.exId);
   if (!meta) return el("div");
+  if (isCardio(ex.exId)) return cardioCard(ex, i, s, meta);
   const rx = prescription(meta, s.goal);
   const last = lastPerformance(ex.exId);
 
@@ -151,6 +152,57 @@ function bump(exIdx, si, set, delta) {
   const cur = set.reps || 0;
   updateSet(exIdx, si, { reps: Math.max(0, cur + delta) });
   haptic(8);
+}
+
+// ---------- cardio card ----------
+function cardioCard(ex, i, s, meta) {
+  const g = cardioGuide();
+  const card = el("div.card", {}, [
+    el("div.flex.between.center", {}, [
+      el("a.row__title", { href: "#/exercise/" + ex.exId, style: { fontSize: "17px" }, text: meta.name }),
+      el("button.iconbtn", { onclick: () => removeExercise(i), "aria-label": "Remove exercise" }, [frag(icon("close"))]),
+    ]),
+    el("div.flex.wrap.gap-6.mt-8", {}, [chip(`${g.duration}`), chip(`${g.intensity}`)]),
+    el("div.list.mt-8", {}, ex.sets.map((set, si) => cardioRow(set, i, si, s))),
+    el("button.btn.btn--ghost.btn--sm.mt-8", { onclick: () => { addSet(i); haptic(); } }, [frag(icon("plus")), "Add interval"]),
+  ]);
+  return card;
+}
+
+function cardioRow(set, exIdx, si, s) {
+  const distVal = set.distance != null ? round1(toDisplayDistance(set.distance, s.units)) : "";
+  const field = (label, node) => el("div", { style: { flex: "1" } }, [
+    el("div", { style: { fontSize: "10px", letterSpacing: ".5px", textTransform: "uppercase", color: "var(--text-3)", fontWeight: "700", marginBottom: "5px", textAlign: "center" } }, [label]),
+    node,
+  ]);
+
+  const minutes = el("input.input.num-in", {
+    type: "number", inputmode: "decimal", step: "1", placeholder: "—",
+    value: set.minutes != null ? String(set.minutes) : "",
+    onchange: (e) => { const v = parseFloat(e.target.value); updateSet(exIdx, si, { minutes: isNaN(v) ? null : v }); },
+  });
+  const distance = el("input.input.num-in", {
+    type: "number", inputmode: "decimal", step: "0.1", placeholder: "—",
+    value: distVal === "" ? "" : String(distVal),
+    onchange: (e) => { const v = parseFloat(e.target.value); updateSet(exIdx, si, { distance: isNaN(v) ? null : fromDisplayDistance(v, s.units) }); },
+  });
+  const calories = el("input.input.num-in", {
+    type: "number", inputmode: "numeric", step: "1", placeholder: "—",
+    value: set.calories != null ? String(set.calories) : "",
+    onchange: (e) => { const v = parseInt(e.target.value, 10); updateSet(exIdx, si, { calories: isNaN(v) ? null : v }); },
+  });
+  const doneBtn = el("button.iconbtn", {
+    style: set.done ? { background: "var(--volt)", color: "#0b0c10", borderColor: "transparent" } : {},
+    "aria-label": "Mark done",
+    onclick: () => { updateSet(exIdx, si, { done: !set.done }); haptic(12); },
+  }, [frag(icon("check"))]);
+
+  return el("div.flex.center", { style: { gap: "8px" } }, [
+    field("Min", minutes),
+    field(distanceUnit(s.units), distance),
+    field("kcal", calories),
+    el("div", { style: { display: "flex", alignItems: "flex-end", height: "100%", paddingBottom: "2px" } }, [doneBtn]),
+  ]);
 }
 
 // ---------- actions ----------
