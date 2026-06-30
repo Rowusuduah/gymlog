@@ -131,14 +131,14 @@ function setRow(set, exIdx, si, s) {
   ]);
 
   const doneBtn = el("button.iconbtn", {
-    style: set.done ? { background: "var(--volt)", color: "#0b0c10", borderColor: "transparent" } : {},
+    style: set.done ? { background: "var(--volt)", color: "#0b0c10", borderColor: "transparent" } : { color: "var(--text-3)" },
     "aria-label": "Mark set done",
     onclick: () => {
       const nowDone = !set.done;
       updateSet(exIdx, si, { done: nowDone });
       if (nowDone) { haptic([15]); startRest(settings().restDefault || defaultRest(settings().goal)); }
     },
-  }, [frag(icon(set.done ? "check" : "check"))]);
+  }, [frag(icon("check"))]);
 
   return el("div.flex.center", { style: { gap: "10px" } }, [
     el("div.num", { style: { width: "26px", textAlign: "center", color: "var(--text-3)" }, text: String(si + 1) }),
@@ -192,7 +192,7 @@ function cardioRow(set, exIdx, si, s) {
     onchange: (e) => { const v = parseInt(e.target.value, 10); updateSet(exIdx, si, { calories: isNaN(v) ? null : v }); },
   });
   const doneBtn = el("button.iconbtn", {
-    style: set.done ? { background: "var(--volt)", color: "#0b0c10", borderColor: "transparent" } : {},
+    style: set.done ? { background: "var(--volt)", color: "#0b0c10", borderColor: "transparent" } : { color: "var(--text-3)" },
     "aria-label": "Mark done",
     onclick: () => { updateSet(exIdx, si, { done: !set.done }); haptic(12); },
   }, [frag(icon("check"))]);
