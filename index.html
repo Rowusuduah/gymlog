@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <title>GymLog — Train. Log. Progress.</title>
+  <meta name="description" content="Beautiful offline-first gym tracker: log workouts, browse the exercise library, track body metrics and progress." />
+  <meta name="theme-color" content="#0E0F13" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GymLog" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- splash shown until JS boots -->
+    <div class="boot">
+      <div class="boot__mark"></div>
+      <div class="boot__name">GYMLOG</div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+  <noscript>
+    <p style="color:#fff;padding:24px;font-family:sans-serif">GymLog needs JavaScript enabled.</p>
+  </noscript>
+</body>
+</html>
